@@ -2,14 +2,16 @@ import React from 'react';
 import NewPostForm from './NewPostForm';
 import PostList from './PostList';
 import PostDetail from './PostDetail';
+import EditPostForm from './EditPostForm';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 
 class PostControl extends React.Component {
 
   constructor(props) {
     super(props);
     this.setState({
-      formVisibleOnPage: false,
-      masterPostList: [],
+      editing: false,
       selectedPost: null
     });
   }
@@ -17,13 +19,15 @@ class PostControl extends React.Component {
   handleClick = () => {
     if (this.state.selectedPost !== null) {
       this.setState({
-        formVisibleOnPage: false,
-        selectedPost: null
+        selectedPost: null,
+        editing: false
       });
     } else {
-      this.setState(prevState => ({
-        formVisibleOnPage: !prevState.formVisibleOnPage
-      }));
+      const { dispatch } = this.props;
+      const action = {
+        type: 'TOGGLE_FORM'
+      }
+      dispatch(action);
     }
   }
 
@@ -46,7 +50,7 @@ class PostControl extends React.Component {
 
 
   handleChangingSelectedPost = (id) => {
-    const selectedPost = this.state.masterPostList.filter(keg => keg.id === id)
+    const selectedPost = this.props.masterPostList[id];
     this.setState({ selectedPost: selectedPost });
   }
 
@@ -86,14 +90,16 @@ class PostControl extends React.Component {
     let currentlyVisibleState = null;
     let buttonText = null;
     if (this.state.editing) {
-      curre = <EditPostForm post={this.state.selectedPost} onEditPost={this.handleEditingPostInList} />
+      currentlyVisibleState = <EditPostForm post={this.state.selectedPost} onEditPost={this.handleEditingPostInList} />
       buttonText = "Return to Posts List";
+
     } else if (this.state.selectedPost != null) {
       currentlyVisibleState = <PostDetail
         post={this.state.selectedPost}
         onClickingDelete={this.handleDeletingPost}
         onClickingEdit={this.handleEditClick} />
       buttonText = "Return to Posts List"
+
     } else if (this.props.formVisibleOnPage) {
       currentlyVisibleState = <NewPostForm onNewPostCreation={this.handleAddingNewPostToList} />;
       buttonText = "Return to Posts List";
@@ -116,5 +122,14 @@ class PostControl extends React.Component {
 PostControl.propTypes = {
   masterPostList: PropTypes.object
 };
+
+const mapStateToProps = state => {
+  return {
+    masterPostList: state.masterPostList,
+    formVisibleOnPage: state.formVisibleOnPage
+  }
+}
+
+PostControl = connect(mapStateToProps)(PostControl);
 
 export default PostControl;
